@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.blooddonationappfirebase.R;
 import com.example.blooddonationappfirebase.model.Post;
@@ -26,6 +28,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class DonationInfo extends Fragment {
@@ -62,6 +65,10 @@ public class DonationInfo extends Fragment {
         postArrayList = new ArrayList<>();
 
 
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        postAdapter = new PostAdapter(postArrayList, requireActivity().getApplicationContext());
+        recyclerView.setAdapter(postAdapter);
+
         databaseReference
                 .child("Users")
                 .child(auth.getUid())
@@ -71,18 +78,23 @@ public class DonationInfo extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         Log.d(TAG, "onDataChange: "+snapshot.getChildren());
                         for (DataSnapshot postSnapshot: snapshot.getChildren()) {
-                            Log.d(TAG, "Posts: "+postSnapshot.getValue().toString());
-                            Post post = postSnapshot.getValue(Post.class);
-                            postArrayList.add(post);
-                            postAdapter = new PostAdapter(postArrayList,requireContext());
-                            recyclerView.setAdapter(postAdapter);
-                            Log.d(TAG, "onCreate: "+postArrayList.size());
+                            try {
+                                Log.d(TAG, "Posts: "+postSnapshot.getValue().toString());
+                                Post post = postSnapshot.getValue(Post.class);
+                                postArrayList.add(post);
+                                postAdapter = new PostAdapter(postArrayList,getContext());
+                                recyclerView.setAdapter(postAdapter);
+                                Log.d(TAG, "onCreate: "+postArrayList.size());
+                            }
+                            catch (Exception e){
+                                Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-
+                        Log.e(TAG, "onCancelled: "+error.getMessage());
                     }
                 });
 
@@ -90,6 +102,7 @@ public class DonationInfo extends Fragment {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(getActivity(), NewPostActivity.class));
+                requireActivity().finish();
             }
         });
     }

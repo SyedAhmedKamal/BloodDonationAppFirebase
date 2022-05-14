@@ -24,7 +24,7 @@ public class LoginActivity extends AppCompatActivity {
     private LoginActivityBinding binding;
     private FirebaseAuth auth;
 
-    @Override
+   /* @Override
     protected void onStart() {
         super.onStart();
 
@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(new Intent(LoginActivity.this, HomeActivity.class));
         }
 
-    }
+    }*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                                finish();
                             }
                         }
                     })

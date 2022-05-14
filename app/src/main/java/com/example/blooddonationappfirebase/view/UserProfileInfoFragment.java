@@ -76,6 +76,7 @@ public class UserProfileInfoFragment extends Fragment {
             public void onClick(View view) {
                 auth.signOut();
                 startActivity(new Intent(requireActivity(), LoginActivity.class));
+                requireActivity().finish();
             }
         });
 

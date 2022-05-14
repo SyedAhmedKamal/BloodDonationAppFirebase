@@ -1,10 +1,12 @@
 package com.example.blooddonationappfirebase.util;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,6 +20,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> 
 
     ArrayList<Post> postList;
     Context context;
+    private static final String TAG = "PostAdapter";
 
     public PostAdapter(ArrayList<Post> postList, Context context) {
         this.postList = postList;
@@ -49,11 +52,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
 
-        holder.authorName.setText(postList.get(position).getAuthor());
-        holder.bloodType.setText(postList.get(position).getBloodType());
-        holder.contact.setText(postList.get(position).getContactInfo());
-        holder.otherInfo.setText(postList.get(position).getOtherInfo());
-        holder.quant.setText(postList.get(position).getQuantity());
+        try {
+            holder.authorName.setText(postList.get(position).getAuthor());
+            holder.bloodType.setText(postList.get(position).getBloodType());
+            holder.contact.setText(postList.get(position).getContactInfo());
+            holder.otherInfo.setText(postList.get(position).getOtherInfo());
+            holder.quant.setText(postList.get(position).getQuantity());
+        } catch (Exception e) {
+            Log.e(TAG, "onBindViewHolder: "+e.getMessage());
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
 
     }
 

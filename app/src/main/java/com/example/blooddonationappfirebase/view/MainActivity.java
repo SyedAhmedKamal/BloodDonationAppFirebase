@@ -7,8 +7,12 @@ import android.os.Bundle;
 import android.os.Handler;
 
 import com.example.blooddonationappfirebase.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseAuth auth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +24,16 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+
+                auth = FirebaseAuth.getInstance();
+                FirebaseUser currentUser = auth.getCurrentUser();
+                if (currentUser != null) {
+                    startActivity(new Intent(MainActivity.this, HomeActivity.class));
+                    finish();
+                } else {
+                    startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                    finish();
+                }
             }
         }, 1000);
     }

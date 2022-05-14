@@ -31,7 +31,7 @@ public class NewPostActivity extends AppCompatActivity {
     private static String author;
     private static String userId;
     private static String postId;
-    Post postData;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,19 +106,18 @@ public class NewPostActivity extends AppCompatActivity {
                             Log.i(TAG, "onDataChange: "+user.getName());
                             NewPostActivity.author = user.getName();
                             NewPostActivity.userId = auth.getUid();
-                            postData = new Post(bloodType, quantity, contactNo, otherInfo, postId, auth.getUid(), user.getName());
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-
+                        Toast.makeText(NewPostActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                     }
                 });
 
 
         NewPostActivity.postId = databaseReference.push().getKey();
-
+        Post postData = new Post(bloodType, quantity, contactNo, otherInfo, postId, auth.getUid(), NewPostActivity.author);
 
         databaseReference
                 .child("Users")
@@ -131,5 +130,11 @@ public class NewPostActivity extends AppCompatActivity {
                 Toast.makeText(NewPostActivity.this, "Post created", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Toast.makeText(this, "Post discarded", Toast.LENGTH_SHORT).show();
     }
 }
