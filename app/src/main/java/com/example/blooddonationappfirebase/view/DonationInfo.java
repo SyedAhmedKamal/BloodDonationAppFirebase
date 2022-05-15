@@ -18,9 +18,11 @@ import android.widget.Toast;
 
 import com.example.blooddonationappfirebase.R;
 import com.example.blooddonationappfirebase.model.Post;
+import com.example.blooddonationappfirebase.model.User;
 import com.example.blooddonationappfirebase.util.PostAdapter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -40,6 +42,19 @@ public class DonationInfo extends Fragment {
     private ArrayList<Post> postArrayList;
      PostAdapter postAdapter;
     private DatabaseReference databaseReference;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            auth.signOut();
+            startActivity(new Intent(requireActivity(), LoginActivity.class));
+        }
+
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,12 +94,21 @@ public class DonationInfo extends Fragment {
                         Log.d(TAG, "onDataChange: "+snapshot.getChildren());
                         for (DataSnapshot postSnapshot: snapshot.getChildren()) {
                             try {
-                                Log.d(TAG, "Posts: "+postSnapshot.getValue().toString());
-                                Post post = postSnapshot.getValue(Post.class);
-                                postArrayList.add(post);
-                                postAdapter = new PostAdapter(postArrayList,getContext());
-                                recyclerView.setAdapter(postAdapter);
-                                Log.d(TAG, "onCreate: "+postArrayList.size());
+                                if (snapshot.exists()){
+                                    Log.d(TAG, "Posts: "+postSnapshot.getValue().toString());
+                                    Post post = postSnapshot.getValue(Post.class);
+                                    postArrayList.add(post);
+                                    postAdapter = new PostAdapter(postArrayList,getContext());
+                                    recyclerView.setAdapter(postAdapter);
+                                    Log.d(TAG, "onCreate: "+postArrayList.size());
+                                }
+                                else {
+                                    Toast.makeText(requireContext(), "Something went wrong", Toast.LENGTH_SHORT).show();
+                                    databaseReference.child("Users").child(auth.getUid()).removeValue();
+                                    auth.signOut();
+                                    startActivity(new Intent(requireActivity(), LoginActivity.class));
+                                    requireActivity().finish();
+                                }
                             }
                             catch (Exception e){
                                 Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_SHORT).show();

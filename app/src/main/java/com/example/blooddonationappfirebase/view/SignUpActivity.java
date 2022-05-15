@@ -78,6 +78,7 @@ public class SignUpActivity extends AppCompatActivity {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     Log.e(TAG, "onFailure: " + e.getMessage());
+                                    Toast.makeText(SignUpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                 }
                             });
                 }

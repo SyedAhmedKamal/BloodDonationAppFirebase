@@ -3,6 +3,7 @@ package com.example.blooddonationappfirebase.view;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,13 +12,17 @@ import android.widget.Toast;
 import com.example.blooddonationappfirebase.databinding.ActivityNewPostBinding;
 import com.example.blooddonationappfirebase.model.Post;
 import com.example.blooddonationappfirebase.model.User;
+import com.example.blooddonationappfirebase.util.PostAdapter;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.Objects;
 
 import dev.shreyaspatil.MaterialDialog.MaterialDialog;
 import dev.shreyaspatil.MaterialDialog.interfaces.DialogInterface;
@@ -32,6 +37,18 @@ public class NewPostActivity extends AppCompatActivity {
     private static String userId;
     private static String postId;
 
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser == null) {
+            auth.signOut();
+            startActivity(new Intent(NewPostActivity.this, LoginActivity.class));
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,19 +68,15 @@ public class NewPostActivity extends AppCompatActivity {
                 String contactNo = binding.contactNo.getText().toString();
                 String otherInfo = binding.otherInfo.getText().toString();
 
-                if (bloodType.isEmpty()){
+                if (bloodType.isEmpty()) {
                     Toast.makeText(NewPostActivity.this, "Blood type cannot be empty", Toast.LENGTH_SHORT).show();
-                }
-                else if(quantity.isEmpty()){
+                } else if (quantity.isEmpty()) {
                     Toast.makeText(NewPostActivity.this, "Quantity cannot be empty", Toast.LENGTH_SHORT).show();
-                }
-                else if(contactNo.isEmpty()){
+                } else if (contactNo.isEmpty()) {
                     Toast.makeText(NewPostActivity.this, "Contact no cannot be empty", Toast.LENGTH_SHORT).show();
-                }
-                else if(otherInfo.isEmpty()){
+                } else if (otherInfo.isEmpty()) {
                     Toast.makeText(NewPostActivity.this, "Other info cannot be empty", Toast.LENGTH_SHORT).show();
-                }
-                else{
+                } else {
 
                     MaterialDialog mDialog = new MaterialDialog.Builder(NewPostActivity.this)
                             .setTitle("Confirm?")
@@ -74,10 +87,9 @@ public class NewPostActivity extends AppCompatActivity {
                                 public void onClick(DialogInterface dialogInterface, int which) {
                                     createPostNow(bloodType, quantity, contactNo, otherInfo);
                                     dialogInterface.dismiss();
-                                    finish();
                                 }
                             })
-                            .setNegativeButton("No",new MaterialDialog.OnClickListener() {
+                            .setNegativeButton("No", new MaterialDialog.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int which) {
                                     dialogInterface.dismiss();
@@ -101,11 +113,26 @@ public class NewPostActivity extends AppCompatActivity {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        User user = snapshot.getValue(User.class);
-                        if (user.getUsername()!=null){
-                            Log.i(TAG, "onDataChange: "+user.getName());
-                            NewPostActivity.author = user.getName();
-                            NewPostActivity.userId = auth.getUid();
+                        try {
+
+                            if (snapshot.exists()) {
+                                User user = snapshot.getValue(User.class);
+                                if (user.getUsername() != null) {
+                                    Log.i(TAG, "onDataChange: " + user.getName());
+                                    NewPostActivity.author = user.getName();
+                                    NewPostActivity.userId = auth.getUid();
+                                }
+                            } else {
+                                Toast.makeText(NewPostActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                                databaseReference.child("Users").child(auth.getUid()).removeValue();
+                                Objects.requireNonNull(auth.getCurrentUser()).delete();
+                                auth.signOut();
+                                startActivity(new Intent(NewPostActivity.this, LoginActivity.class));
+                                finish();
+                            }
+
+                        } catch (Exception e) {
+                            Log.e(TAG, "onDataChange: " + e.getMessage());
                         }
                     }
 
@@ -128,13 +155,9 @@ public class NewPostActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Void unused) {
                 Toast.makeText(NewPostActivity.this, "Post created", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(NewPostActivity.this, HomeActivity.class));
+                finish();
             }
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Toast.makeText(this, "Post discarded", Toast.LENGTH_SHORT).show();
     }
 }
